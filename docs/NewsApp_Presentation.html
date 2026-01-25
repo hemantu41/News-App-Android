@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News App - Project Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1976D2;
+            --primary-dark: #1565C0;
+            --accent: #FF9800;
+            --success: #4CAF50;
+            --danger: #E91E63;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--dark);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Slide Container */
+        .slides-container {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 60px;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Navigation */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        /* Slide 1: Title */
+        .slide-title {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #0d47a1 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide-title .logo-container {
+            width: 180px;
+            height: 180px;
+            background: white;
+            border-radius: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .slide-title .logo-text {
+            color: var(--primary);
+            font-size: 2.5em;
+            font-weight: 800;
+        }
+
+        .slide-title h1 {
+            font-size: 4em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .slide-title .tagline {
+            font-size: 1.5em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .slide-title .tech-stack {
+            margin-top: 50px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tech-badge {
+            padding: 10px 25px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 30px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Content Slides */
+        .content-slide {
+            background: var(--dark);
+        }
+
+        .content-slide::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 70%;
+            height: 200%;
+            background: linear-gradient(135deg, var(--primary) 0%, transparent 70%);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+
+        .slide-header {
+            margin-bottom: 40px;
+        }
+
+        .slide-header h2 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            display: inline-block;
+        }
+
+        .slide-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            gap: 40px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .card h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .card ul {
+            list-style: none;
+        }
+
+        .card li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .card li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            flex: 1;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(25,118,210,0.2), rgba(25,118,210,0.05));
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(25,118,210,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        /* Architecture Diagram */
+        .arch-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .arch-layer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .arch-box {
+            padding: 20px 40px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .arch-ui {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .arch-vm {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        .arch-repo {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+
+        .arch-data {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        }
+
+        .arch-arrow {
+            font-size: 30px;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+        }
+
+        .flow-item {
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .flow-start { background: #4CAF50; border-radius: 25px; }
+        .flow-process { background: var(--primary); }
+        .flow-end { background: #E91E63; border-radius: 25px; }
+        .flow-arrow { font-size: 24px; color: rgba(255,255,255,0.5); }
+
+        /* Screen Cards */
+        .screen-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            flex: 1;
+        }
+
+        .screen-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen-preview {
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+        }
+
+        .screen-card.login .screen-preview { background: linear-gradient(135deg, #1976D2, #1565C0); }
+        .screen-card.home .screen-preview { background: linear-gradient(135deg, #4CAF50, #388E3C); }
+        .screen-card.search .screen-preview { background: linear-gradient(135deg, #FF9800, #F57C00); }
+        .screen-card.favorites .screen-preview { background: linear-gradient(135deg, #E91E63, #C2185B); }
+        .screen-card.details .screen-preview { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
+
+        .screen-info {
+            padding: 20px;
+        }
+
+        .screen-info h4 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .screen-info p {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(25,118,210,0.3), rgba(25,118,210,0.1));
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(25,118,210,0.3);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.95em;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+
+        /* Code Snippet */
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 15px;
+            padding: 25px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-keyword { color: #569cd6; }
+        .code-function { color: #dcdcaa; }
+        .code-string { color: #ce9178; }
+        .code-comment { color: #6a9955; }
+        .code-type { color: #4ec9b0; }
+
+        /* Table */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .styled-table th {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .styled-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .styled-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            flex: 1;
+        }
+
+        /* List with icons */
+        .icon-list {
+            list-style: none;
+        }
+
+        .icon-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 12px 0;
+        }
+
+        .icon-list .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .icon-list .text h5 {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .icon-list .text p {
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Final Slide */
+        .slide-final {
+            background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide-final h2 {
+            font-size: 3em;
+            margin-bottom: 30px;
+        }
+
+        .slide-final .links {
+            display: flex;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .slide-final .link-btn {
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .slide-final .link-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .link-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .link-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .slide { padding: 40px; }
+            .slide-title h1 { font-size: 3em; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .screen-grid { grid-template-columns: repeat(3, 1fr); }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="slides-container" id="slidesContainer">
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title active" data-slide="1">
+            <div class="logo-container">
+                <span class="logo-text">NEWS</span>
+            </div>
+            <h1>News App</h1>
+            <p class="tagline">Stay Updated with the Latest News</p>
+            <div class="tech-stack">
+                <span class="tech-badge">Kotlin</span>
+                <span class="tech-badge">Jetpack Compose</span>
+                <span class="tech-badge">MVVM</span>
+                <span class="tech-badge">Hilt</span>
+                <span class="tech-badge">Room</span>
+                <span class="tech-badge">Retrofit</span>
+            </div>
+        </div>
+
+        <!-- Slide 2: Overview -->
+        <div class="slide content-slide" data-slide="2">
+            <div class="slide-header">
+                <h2>Project Overview</h2>
+            </div>
+            <div class="slide-content">
+                <div class="two-col">
+                    <div>
+                        <h3 style="color: var(--accent); margin-bottom: 20px;">About the App</h3>
+                        <p style="line-height: 1.8; color: rgba(255,255,255,0.8);">
+                            News App is a modern Android application that allows users to browse,
+                            search, and save their favorite news articles. Built with the latest
+                            Android development technologies and following clean architecture principles.
+                        </p>
+                        <div class="stats-row" style="margin-top: 40px;">
+                            <div class="stat-box">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">Screens</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">23</div>
+                                <div class="stat-label">Kotlin Files</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">ViewModels</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent); margin-bottom: 20px;">Key Features</h3>
+                        <ul class="icon-list">
+                            <li>
+                                <span class="icon">&#128272;</span>
+                                <div class="text">
+                                    <h5>User Authentication</h5>
+                                    <p>Secure login with email/mobile validation</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="icon">&#128240;</span>
+                                <div class="text">
+                                    <h5>News Feed</h5>
+                                    <p>Top headlines from NewsAPI</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="icon">&#128269;</span>
+                                <div class="text">
+                                    <h5>Smart Search</h5>
+                                    <p>Debounced search with instant results</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="icon">&#10084;</span>
+                                <div class="text">
+                                    <h5>Favorites</h5>
+                                    <p>Save articles locally with Room DB</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Architecture -->
+        <div class="slide content-slide" data-slide="3">
+            <div class="slide-header">
+                <h2>MVVM Architecture</h2>
+            </div>
+            <div class="slide-content" style="flex-direction: column;">
+                <div class="arch-diagram">
+                    <div class="arch-layer">
+                        <div class="arch-box arch-ui">UI Layer<br><small>Composables</small></div>
+                    </div>
+                    <div class="arch-arrow">&#8595; StateFlow &#8595;</div>
+                    <div class="arch-layer">
+                        <div class="arch-box arch-vm">ViewModel Layer<br><small>Business Logic</small></div>
+                    </div>
+                    <div class="arch-arrow">&#8595; Suspend/Flow &#8595;</div>
+                    <div class="arch-layer">
+                        <div class="arch-box arch-repo">Repository<br><small>Single Source of Truth</small></div>
+                    </div>
+                    <div class="arch-arrow" style="display: flex; gap: 100px;">
+                        <span>&#8595;</span>
+                        <span>&#8595;</span>
+                    </div>
+                    <div class="arch-layer">
+                        <div class="arch-box arch-data">Remote<br><small>NewsAPI</small></div>
+                        <div class="arch-box arch-data">Local<br><small>Room DB</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Screens -->
+        <div class="slide content-slide" data-slide="4">
+            <div class="slide-header">
+                <h2>App Screens</h2>
+            </div>
+            <div class="slide-content">
+                <div class="screen-grid">
+                    <div class="screen-card login">
+                        <div class="screen-preview">&#128272;</div>
+                        <div class="screen-info">
+                            <h4>Login</h4>
+                            <p>Email/Mobile authentication with validation</p>
+                        </div>
+                    </div>
+                    <div class="screen-card home">
+                        <div class="screen-preview">&#127968;</div>
+                        <div class="screen-info">
+                            <h4>Home</h4>
+                            <p>News feed with favorites section</p>
+                        </div>
+                    </div>
+                    <div class="screen-card search">
+                        <div class="screen-preview">&#128269;</div>
+                        <div class="screen-info">
+                            <h4>Search</h4>
+                            <p>Debounced search functionality</p>
+                        </div>
+                    </div>
+                    <div class="screen-card favorites">
+                        <div class="screen-preview">&#10084;</div>
+                        <div class="screen-info">
+                            <h4>Favorites</h4>
+                            <p>Saved articles management</p>
+                        </div>
+                    </div>
+                    <div class="screen-card details">
+                        <div class="screen-preview">&#128196;</div>
+                        <div class="screen-info">
+                            <h4>Details</h4>
+                            <p>Full article with favorite toggle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Navigation Flow -->
+        <div class="slide content-slide" data-slide="5">
+            <div class="slide-header">
+                <h2>Navigation Flow</h2>
+            </div>
+            <div class="slide-content" style="flex-direction: column; justify-content: center;">
+                <div class="flow-diagram">
+                    <div class="flow-item flow-start">App Launch</div>
+                    <span class="flow-arrow">&#10142;</span>
+                    <div class="flow-item flow-process">Login Screen</div>
+                    <span class="flow-arrow">&#10142;</span>
+                    <div class="flow-item flow-process">Home Screen</div>
+                </div>
+                <div style="height: 40px;"></div>
+                <div class="flow-diagram">
+                    <div class="flow-item flow-process">Search</div>
+                    <span class="flow-arrow">&#8592;</span>
+                    <div class="flow-item flow-process" style="background: var(--success);">Home</div>
+                    <span class="flow-arrow">&#8594;</span>
+                    <div class="flow-item flow-process">Favorites</div>
+                </div>
+                <div style="height: 40px;"></div>
+                <div class="flow-diagram">
+                    <div class="flow-item flow-end">News Details Screen</div>
+                </div>
+                <p style="text-align: center; margin-top: 20px; color: rgba(255,255,255,0.6);">
+                    Accessible from Home, Search, and Favorites screens
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 6: Data Layer -->
+        <div class="slide content-slide" data-slide="6">
+            <div class="slide-header">
+                <h2>Data Layer</h2>
+            </div>
+            <div class="slide-content">
+                <div class="two-col">
+                    <div class="card">
+                        <h3>&#127760; Remote Data Source</h3>
+                        <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">NewsAPI Integration</p>
+                        <div class="code-block">
+<span class="code-keyword">interface</span> <span class="code-type">NewsApiService</span> {<br>
+&nbsp;&nbsp;<span class="code-keyword">@GET</span>(<span class="code-string">"v2/top-headlines"</span>)<br>
+&nbsp;&nbsp;<span class="code-keyword">suspend fun</span> <span class="code-function">getTopHeadlines</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;country: <span class="code-type">String</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;apiKey: <span class="code-type">String</span><br>
+&nbsp;&nbsp;): <span class="code-type">NewsResponse</span><br>
+<br>
+&nbsp;&nbsp;<span class="code-keyword">@GET</span>(<span class="code-string">"v2/everything"</span>)<br>
+&nbsp;&nbsp;<span class="code-keyword">suspend fun</span> <span class="code-function">searchNews</span>(...)<br>
+}
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>&#128451; Local Data Source</h3>
+                        <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">Room Database</p>
+                        <div class="code-block">
+<span class="code-keyword">@Entity</span>(tableName = <span class="code-string">"favorite_articles"</span>)<br>
+<span class="code-keyword">data class</span> <span class="code-type">FavoriteArticle</span>(<br>
+&nbsp;&nbsp;<span class="code-keyword">@PrimaryKey</span><br>
+&nbsp;&nbsp;<span class="code-keyword">val</span> url: <span class="code-type">String</span>,<br>
+&nbsp;&nbsp;<span class="code-keyword">val</span> title: <span class="code-type">String?</span>,<br>
+&nbsp;&nbsp;<span class="code-keyword">val</span> description: <span class="code-type">String?</span>,<br>
+&nbsp;&nbsp;<span class="code-keyword">val</span> addedAt: <span class="code-type">Long</span><br>
+)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: ViewModels -->
+        <div class="slide content-slide" data-slide="7">
+            <div class="slide-header">
+                <h2>ViewModels & State Management</h2>
+            </div>
+            <div class="slide-content">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>ViewModel</th>
+                            <th>UI State</th>
+                            <th>Key Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>LoginViewModel</strong></td>
+                            <td>emailOrMobile, password, isLoading, errors</td>
+                            <td>onSignInClick(), isValidEmailOrMobile()</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HomeViewModel</strong></td>
+                            <td>articles, favorites, isLoading, error</td>
+                            <td>loadNews(), refresh(), observeFavorites()</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SearchViewModel</strong></td>
+                            <td>query, articles, hasSearched, isLoading</td>
+                            <td>onQueryChange(), searchNews(), clearSearch()</td>
+                        </tr>
+                        <tr>
+                            <td><strong>FavoritesViewModel</strong></td>
+                            <td>favorites, isLoading</td>
+                            <td>observeFavorites(), removeFromFavorites()</td>
+                        </tr>
+                        <tr>
+                            <td><strong>NewsDetailsViewModel</strong></td>
+                            <td>article, isFavorite, isLoading</td>
+                            <td>toggleFavorite(), observeFavoriteStatus()</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 8: Login Flow -->
+        <div class="slide content-slide" data-slide="8">
+            <div class="slide-header">
+                <h2>Login Flow</h2>
+            </div>
+            <div class="slide-content" style="flex-direction: column; justify-content: center;">
+                <div class="flow-diagram" style="flex-direction: column; gap: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-start">User Input</div>
+                        <span class="flow-arrow">&#10142;</span>
+                        <div class="flow-item flow-process">onSignInClick()</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-process">Validate Email/Mobile</div>
+                        <span class="flow-arrow">&#10142;</span>
+                        <div class="flow-item flow-process">Validate Password</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-process">Check Credentials</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 40px; justify-content: center;">
+                        <div class="flow-item" style="background: var(--success);">Valid &#10004;</div>
+                        <div class="flow-item" style="background: var(--danger);">Invalid &#10006;</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 40px; justify-content: center;">
+                        <div class="flow-item flow-end">Navigate Home</div>
+                        <div class="flow-item" style="background: #333;">Show Error Dialog</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Favorites Flow -->
+        <div class="slide content-slide" data-slide="9">
+            <div class="slide-header">
+                <h2>Favorites Flow</h2>
+            </div>
+            <div class="slide-content" style="flex-direction: column; justify-content: center;">
+                <div class="flow-diagram" style="flex-direction: column; gap: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-start">User Clicks Favorite</div>
+                        <span class="flow-arrow">&#10142;</span>
+                        <div class="flow-item flow-process">toggleFavorite()</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-process">repository.toggleFavorite(article)</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-process">Check if exists in DB</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 40px; justify-content: center;">
+                        <div class="flow-item" style="background: var(--danger);">Exists? DELETE</div>
+                        <div class="flow-item" style="background: var(--success);">Not Exists? INSERT</div>
+                    </div>
+                    <span class="flow-arrow" style="font-size: 30px;">&#8595;</span>
+                    <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                        <div class="flow-item flow-end">Flow emits new state &#8594; UI Updates</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Dependencies -->
+        <div class="slide content-slide" data-slide="10">
+            <div class="slide-header">
+                <h2>Technology Stack</h2>
+            </div>
+            <div class="slide-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">&#127912;</div>
+                        <h4>Jetpack Compose</h4>
+                        <p>Modern declarative UI toolkit for building native Android interfaces.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">&#128279;</div>
+                        <h4>Hilt</h4>
+                        <p>Dependency injection library built on top of Dagger for Android.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">&#127760;</div>
+                        <h4>Retrofit + OkHttp</h4>
+                        <p>Type-safe HTTP client for API calls with logging interceptor.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">&#128451;</div>
+                        <h4>Room Database</h4>
+                        <p>SQLite abstraction layer for local data persistence.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">&#127748;</div>
+                        <h4>Coil</h4>
+                        <p>Kotlin-first image loading library for Compose.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">&#128640;</div>
+                        <h4>Navigation Compose</h4>
+                        <p>Type-safe navigation for Jetpack Compose apps.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Thank You -->
+        <div class="slide slide-final" data-slide="11">
+            <h2>Thank You!</h2>
+            <p style="font-size: 1.3em; color: rgba(255,255,255,0.7); margin-top: 10px;">
+                News App - Built with Modern Android Development
+            </p>
+            <div style="margin-top: 50px;">
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-number">Kotlin</div>
+                        <div class="stat-label">100% Kotlin Codebase</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">MVVM</div>
+                        <div class="stat-label">Clean Architecture</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">Compose</div>
+                        <div class="stat-label">Declarative UI</div>
+                    </div>
+                </div>
+            </div>
+            <div class="links">
+                <a href="https://github.com/hemantu41/News-App-Android" class="link-btn link-primary" target="_blank">View on GitHub</a>
+                <a href="NewsApp_Documentation.html" class="link-btn link-secondary">View Documentation</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">&#10094;</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">&#10095;</button>
+    </div>
+
+    <div class="slide-counter" id="slideCounter">1 / 11</div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 11;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide - 1].classList.add('active');
+
+            document.getElementById('slideCounter').textContent = `${currentSlide} / ${totalSlides}`;
+            document.getElementById('progressBar').style.width = `${(currentSlide / totalSlides) * 100}%`;
+        }
+
+        function changeSlide(n) {
+            currentSlide += n;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+
+        // Touch navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    changeSlide(1);
+                } else {
+                    changeSlide(-1);
+                }
+            }
+        }
+
+        // Initialize
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
