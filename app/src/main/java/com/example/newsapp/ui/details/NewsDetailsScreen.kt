@@ -1,6 +1,12 @@
 package com.example.newsapp.ui.details
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +29,6 @@ import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,17 +40,31 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.example.newsapp.ui.components.HeroImage
+import com.example.newsapp.ui.components.SourceBadge
+import com.example.newsapp.ui.components.shimmerEffect
+import com.example.newsapp.ui.theme.AppGradients
 import com.example.newsapp.ui.theme.FavoriteRed
+import com.example.newsapp.ui.theme.FavoriteRedLight
 import com.example.newsapp.ui.theme.PrimaryBlue
+import com.example.newsapp.ui.theme.PrimaryDarkBlue
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -56,6 +75,33 @@ fun NewsDetailsScreen(
     viewModel: NewsDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Animation states for favorite button
+    var isButtonPressed by remember { mutableStateOf(false) }
+
+    val buttonScale by animateFloatAsState(
+        targetValue = if (isButtonPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "buttonScale"
+    )
+
+    val buttonColor by animateColorAsState(
+        targetValue = if (uiState.isFavorite) FavoriteRed else PrimaryBlue,
+        animationSpec = tween(durationMillis = 300),
+        label = "buttonColor"
+    )
+
+    val iconScale by animateFloatAsState(
+        targetValue = if (isButtonPressed) 1.2f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "iconScale"
+    )
 
     Scaffold(
         topBar = {
@@ -84,43 +130,65 @@ fun NewsDetailsScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-                // News Image
-                SubcomposeAsyncImage(
-                    model = article.urlToImage,
-                    contentDescription = article.title,
+                // Hero Image with gradient overlay (300dp height)
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp),
-                    contentScale = ContentScale.Crop,
-                    loading = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.LightGray),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(40.dp),
-                                color = PrimaryBlue
+                        .height(300.dp)
+                ) {
+                    SubcomposeAsyncImage(
+                        model = article.urlToImage,
+                        contentDescription = article.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .shimmerEffect()
                             )
+                        },
+                        error = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                PrimaryBlue.copy(alpha = 0.3f),
+                                                PrimaryDarkBlue.copy(alpha = 0.2f)
+                                            )
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Newspaper,
+                                    contentDescription = null,
+                                    tint = PrimaryBlue,
+                                    modifier = Modifier.size(80.dp)
+                                )
+                            }
                         }
-                    },
-                    error = {
-                        Box(
+                    )
+
+                    // Hero gradient overlay
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(AppGradients.heroImageGradient)
+                    )
+
+                    // Source badge on image
+                    article.source?.name?.let { sourceName ->
+                        SourceBadge(
+                            sourceName = sourceName,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(PrimaryBlue.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Newspaper,
-                                contentDescription = null,
-                                tint = PrimaryBlue,
-                                modifier = Modifier.size(64.dp)
-                            )
-                        }
+                                .align(Alignment.BottomStart)
+                                .padding(16.dp)
+                        )
                     }
-                )
+                }
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     // News Headline
@@ -171,25 +239,6 @@ fun NewsDetailsScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Source badge
-                    article.source?.name?.let { sourceName ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(PrimaryBlue.copy(alpha = 0.1f))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(
-                                text = sourceName,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = PrimaryBlue,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // Full Description/Content
@@ -201,21 +250,41 @@ fun NewsDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Add to Favorites Button
+                    // Animated Favorite Button with color transition
                     Button(
                         onClick = { viewModel.toggleFavorite() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
+                            .height(56.dp)
+                            .graphicsLayer {
+                                scaleX = buttonScale
+                                scaleY = buttonScale
+                            }
+                            .shadow(
+                                elevation = if (isButtonPressed) 4.dp else 8.dp,
+                                shape = RoundedCornerShape(16.dp),
+                                spotColor = buttonColor.copy(alpha = 0.3f)
+                            )
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isButtonPressed = true
+                                        tryAwaitRelease()
+                                        isButtonPressed = false
+                                    }
+                                )
+                            },
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (uiState.isFavorite) FavoriteRed else PrimaryBlue
+                            containerColor = buttonColor
                         )
                     ) {
                         Icon(
                             imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier
+                                .size(24.dp)
+                                .scale(iconScale)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -235,13 +304,13 @@ fun NewsDetailsScreen(
 private fun formatDate(dateString: String): String {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
         val date = inputFormat.parse(dateString)
         date?.let { outputFormat.format(it) } ?: dateString
     } catch (e: Exception) {
         try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
             val date = inputFormat.parse(dateString)
             date?.let { outputFormat.format(it) } ?: dateString
         } catch (e: Exception) {

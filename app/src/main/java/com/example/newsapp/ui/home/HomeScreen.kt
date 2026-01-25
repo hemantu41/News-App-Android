@@ -1,11 +1,11 @@
 package com.example.newsapp.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,15 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,18 +38,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import coil.compose.SubcomposeAsyncImage
 import com.example.newsapp.data.api.models.Article
+import com.example.newsapp.ui.components.PremiumFavoriteCard
+import com.example.newsapp.ui.components.PremiumNewsCard
+import com.example.newsapp.ui.components.ShimmerCompactCard
+import com.example.newsapp.ui.components.ShimmerNewsCard
 import com.example.newsapp.ui.theme.FavoriteRed
+import com.example.newsapp.ui.theme.FavoriteRedLight
 import com.example.newsapp.ui.theme.PrimaryBlue
+import com.example.newsapp.ui.theme.PrimaryDarkBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,11 +115,23 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             if (uiState.isLoading && uiState.articles.isEmpty()) {
-                Box(
+                // Shimmer Loading State
+                LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    CircularProgressIndicator(color = PrimaryBlue)
+                    item {
+                        Text(
+                            text = "Latest News",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+
+                    items(5) {
+                        ShimmerNewsCard()
+                    }
                 }
             } else {
                 LazyColumn(
@@ -131,7 +141,7 @@ fun HomeScreen(
                     // Favorites Section
                     if (uiState.favorites.isNotEmpty()) {
                         item {
-                            FavoritesSection(
+                            PremiumFavoritesSection(
                                 favorites = uiState.favorites,
                                 onArticleClick = onArticleClick
                             )
@@ -175,7 +185,7 @@ fun HomeScreen(
                         }
                     } else {
                         items(uiState.articles) { article ->
-                            NewsCard(
+                            PremiumNewsCard(
                                 article = article,
                                 onClick = { onArticleClick(article) }
                             )
@@ -188,15 +198,22 @@ fun HomeScreen(
 }
 
 @Composable
-private fun FavoritesSection(
+private fun PremiumFavoritesSection(
     favorites: List<Article>,
     onArticleClick: (Article) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(FavoriteRed.copy(alpha = 0.1f))
-            .padding(vertical = 12.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        FavoriteRedLight.copy(alpha = 0.15f),
+                        FavoriteRed.copy(alpha = 0.08f)
+                    )
+                )
+            )
+            .padding(vertical = 16.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -210,7 +227,7 @@ private fun FavoritesSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Favorites News",
+                text = "Your Favorites",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = FavoriteRed
@@ -224,162 +241,11 @@ private fun FavoritesSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(favorites) { article ->
-                FavoriteCard(
+                PremiumFavoriteCard(
                     article = article,
                     onClick = { onArticleClick(article) }
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun FavoriteCard(
-    article: Article,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .width(200.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column {
-            SubcomposeAsyncImage(
-                model = article.urlToImage,
-                contentDescription = article.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = PrimaryBlue
-                        )
-                    }
-                },
-                error = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(PrimaryBlue.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Newspaper,
-                            contentDescription = null,
-                            tint = PrimaryBlue,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-            )
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = article.title ?: "No Title",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun NewsCard(
-    article: Article,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column {
-            SubcomposeAsyncImage(
-                model = article.urlToImage,
-                contentDescription = article.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(32.dp),
-                            color = PrimaryBlue
-                        )
-                    }
-                },
-                error = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(PrimaryBlue.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Newspaper,
-                            contentDescription = null,
-                            tint = PrimaryBlue,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-                }
-            )
-
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = article.title ?: "No Title",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = article.description ?: "No description available",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun Row(
-    modifier: Modifier = Modifier,
-    verticalAlignment: Alignment.Vertical = Alignment.Top,
-    content: @Composable () -> Unit
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = modifier,
-        verticalAlignment = verticalAlignment
-    ) {
-        content()
     }
 }

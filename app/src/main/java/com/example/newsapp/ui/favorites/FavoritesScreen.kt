@@ -1,7 +1,13 @@
 package com.example.newsapp.ui.favorites
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +31,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,10 +42,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,8 +60,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.example.newsapp.data.api.models.Article
+import com.example.newsapp.ui.components.AnimatedFavoriteButton
+import com.example.newsapp.ui.components.ShimmerNewsCard
+import com.example.newsapp.ui.components.shimmerEffect
+import com.example.newsapp.ui.theme.AppGradients
 import com.example.newsapp.ui.theme.FavoriteRed
-import com.example.newsapp.ui.theme.PrimaryBlue
+import com.example.newsapp.ui.theme.FavoriteRedDark
+import com.example.newsapp.ui.theme.FavoriteRedLight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,13 +113,16 @@ fun FavoritesScreen(
     ) { paddingValues ->
         when {
             uiState.isLoading -> {
-                Box(
+                // Shimmer Loading State
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = Alignment.Center
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    CircularProgressIndicator(color = FavoriteRed)
+                    items(4) {
+                        ShimmerNewsCard()
+                    }
                 }
             }
 
@@ -121,19 +141,19 @@ fun FavoritesScreen(
                             imageVector = Icons.Default.FavoriteBorder,
                             contentDescription = null,
                             modifier = Modifier.size(80.dp),
-                            tint = Color.Gray.copy(alpha = 0.5f)
+                            tint = FavoriteRedLight.copy(alpha = 0.5f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "No favorites yet",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Articles you favorite will appear here",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -159,7 +179,7 @@ fun FavoritesScreen(
                         items = uiState.favorites,
                         key = { it.url }
                     ) { article ->
-                        FavoriteArticleCard(
+                        PremiumFavoriteArticleCard(
                             article = article,
                             onClick = { onArticleClick(article) },
                             onRemove = { viewModel.removeFromFavorites(article) }
@@ -172,18 +192,47 @@ fun FavoritesScreen(
 }
 
 @Composable
-private fun FavoriteArticleCard(
+private fun PremiumFavoriteArticleCard(
     article: Article,
     onClick: () -> Unit,
     onRemove: () -> Unit
 ) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "cardScale"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = FavoriteRed.copy(alpha = 0.15f)
+            )
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = { onClick() }
+                )
+            },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -191,43 +240,73 @@ private fun FavoriteArticleCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Thumbnail
-            SubcomposeAsyncImage(
-                model = article.urlToImage,
-                contentDescription = article.title,
+            // Thumbnail with gradient overlay
+            Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = FavoriteRed
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            ) {
+                SubcomposeAsyncImage(
+                    model = article.urlToImage,
+                    contentDescription = article.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .shimmerEffect()
                         )
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            FavoriteRedLight.copy(alpha = 0.3f),
+                                            FavoriteRed.copy(alpha = 0.2f)
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Newspaper,
+                                contentDescription = null,
+                                tint = FavoriteRed,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
                     }
-                },
-                error = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(FavoriteRed.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Newspaper,
-                            contentDescription = null,
-                            tint = FavoriteRed,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
+                )
+
+                // Gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(AppGradients.cardOverlayGradient)
+                )
+
+                // Favorite indicator
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .size(22.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color.White.copy(alpha = 0.9f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = null,
+                        tint = FavoriteRed,
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
-            )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -235,7 +314,7 @@ private fun FavoriteArticleCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .height(100.dp),
+                    .height(110.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
@@ -252,32 +331,31 @@ private fun FavoriteArticleCard(
                     Text(
                         text = article.description ?: "No description available",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
+                // Source name
                 if (article.source?.name != null) {
                     Text(
                         text = article.source.name,
                         style = MaterialTheme.typography.labelSmall,
-                        color = FavoriteRed
+                        color = FavoriteRed,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
 
-            // Remove button
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Remove from favorites",
-                    tint = Color.Gray
-                )
-            }
+            // Animated Remove button
+            AnimatedFavoriteButton(
+                isFavorite = true,
+                onToggle = onRemove,
+                tint = FavoriteRed,
+                size = 22,
+                modifier = Modifier.padding(start = 4.dp)
+            )
         }
     }
 }

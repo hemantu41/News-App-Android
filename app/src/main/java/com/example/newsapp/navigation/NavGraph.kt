@@ -1,5 +1,10 @@
 package com.example.newsapp.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -14,6 +19,8 @@ import com.example.newsapp.ui.favorites.FavoritesScreen
 import com.example.newsapp.ui.search.SearchScreen
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
+private const val TRANSITION_DURATION = 300
 
 sealed class Screen(val route: String) {
     data object Login : Screen("login")
@@ -44,7 +51,26 @@ fun NavGraph(navController: NavHostController) {
         navController = navController,
         startDestination = Screen.Login.route
     ) {
-        composable(route = Screen.Login.route) {
+        // Login Screen - Fade transition
+        composable(
+            route = Screen.Login.route,
+            enterTransition = {
+                fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            exitTransition = {
+                fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            }
+        ) {
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
@@ -54,7 +80,66 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        composable(route = Screen.Home.route) {
+        // Home Screen - Slide + Fade transition
+        composable(
+            route = Screen.Home.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            }
+        ) {
             HomeScreen(
                 onArticleClick = { article ->
                     navController.navigate(Screen.NewsDetails.createRoute(article))
@@ -68,7 +153,66 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        composable(route = Screen.Search.route) {
+        // Search Screen - Slide + Fade transition
+        composable(
+            route = Screen.Search.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            }
+        ) {
             SearchScreen(
                 onArticleClick = { article ->
                     navController.navigate(Screen.NewsDetails.createRoute(article))
@@ -77,7 +221,66 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        composable(route = Screen.Favorites.route) {
+        // Favorites Screen - Slide + Fade transition
+        composable(
+            route = Screen.Favorites.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            }
+        ) {
             FavoritesScreen(
                 onArticleClick = { article ->
                     navController.navigate(Screen.NewsDetails.createRoute(article))
@@ -86,6 +289,7 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+        // News Details Screen - Slide Up + Fade transition
         composable(
             route = Screen.NewsDetails.route,
             arguments = listOf(
@@ -97,7 +301,51 @@ fun NavGraph(navController: NavHostController) {
                 navArgument("publishedAt") { type = NavType.StringType },
                 navArgument("content") { type = NavType.StringType },
                 navArgument("sourceName") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            exitTransition = {
+                fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popEnterTransition = {
+                fadeIn(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(
+                    animationSpec = tween(
+                        durationMillis = TRANSITION_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            }
         ) {
             NewsDetailsScreen(
                 onBackClick = { navController.popBackStack() }
