@@ -169,8 +169,17 @@ fun LoginScreen(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     errorContainerColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.7f)
+                    focusedBorderColor = PrimaryBlue,
+                    unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    focusedLabelColor = PrimaryBlue,
+                    unfocusedLabelColor = Color.Gray,
+                    focusedLeadingIconColor = PrimaryBlue,
+                    unfocusedLeadingIconColor = Color.Gray,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                    cursorColor = PrimaryBlue
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -216,8 +225,19 @@ fun LoginScreen(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     errorContainerColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.7f)
+                    focusedBorderColor = PrimaryBlue,
+                    unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    focusedLabelColor = PrimaryBlue,
+                    unfocusedLabelColor = Color.Gray,
+                    focusedLeadingIconColor = PrimaryBlue,
+                    unfocusedLeadingIconColor = Color.Gray,
+                    focusedTrailingIconColor = PrimaryBlue,
+                    unfocusedTrailingIconColor = Color.Gray,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                    cursorColor = PrimaryBlue
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
